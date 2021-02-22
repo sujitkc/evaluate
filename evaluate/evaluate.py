@@ -45,6 +45,7 @@ def evaluate(f):
         UnboundLocalError,
         KeyboardInterrupt,
         ZeroDivisionError,
+        FileNotFoundError,
         ValueError) as e:
       return (0, f.__name__ + ": " + str(e))
   return g
@@ -77,7 +78,7 @@ def evaluator(evals):
   return eval_all
 
 # compares the value 
-def eval_matfun(fname, o, e):
+def eval_value(fname, o, e):
   if(equals(o, e)):
     return (1, fname)
   else:
