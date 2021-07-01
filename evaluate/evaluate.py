@@ -2,6 +2,8 @@ import subprocess
 import functools
 import sys
 import ast
+import threading
+import time
 
 mypython = "python3"
 
@@ -29,7 +31,7 @@ def equals(x, y):
   else:
     return x == y
 
-def evaluate(f):
+def safe(f):
   def g():
     try:
       return f()
@@ -46,12 +48,38 @@ def evaluate(f):
         KeyboardInterrupt,
         ZeroDivisionError,
         FileNotFoundError,
+        RecursionError,
         ValueError) as e:
       return (0, f.__name__ + ": " + str(e))
   return g
 
+class MyThread(threading.Thread):
+  def __init__(self, f):
+    threading.Thread.__init__(self)
+    self.f = f
+    self.result = None
+
+  def run(self):
+    self.result = self.f()
+def evaluate(f):
+  safef = safe(f)
+  
+  def make_daemon():
+    t = MyThread(f=safef)
+    t.daemon = True
+    t.start()
+    timeout = True
+    for i in range(10):
+      if(t.is_alive()):
+        time.sleep(0.1)
+      else:
+        return t.result
+    return (0, f.__name__ + ": Timeout")
+  return make_daemon
+
 def testsuite(tests):
   def eval_tests():
+    result = []
     result = [f() for (f, _) in tests]
     weights = [w for (_, w) in tests]
     test_results = [tr for (tr, _) in result]
@@ -69,7 +97,6 @@ def evaluator(evals):
     marks = []
     for (test, qm) in evals:
       success_rate, result = test()
-#      print(result)
       individual_test_results = [m for (m, _) in result]
       print(individual_test_results)
       marks.append(success_rate * qm)
@@ -83,6 +110,10 @@ def eval_value(fname, o, e):
     return (1, fname)
   else:
     return (0, fname + ": wrong answer")
+
+def stub(f):
+#  fname = sys._getframe().f_code.co_name
+  return lambda: (1, f.__name__ + " : not tested.")
 
 # compares the value returned by the mathematical function
 def eval_matfun(fname, sub, ref):
@@ -159,3 +190,17 @@ def eval_is_recursive(fname, filename, f):
     return (1, fname)
   else:
     return(0, fname + ": " + f + " is not recursive.")
+
+# finds out if a function named 'inner' is an inner function in another
+# function named 'outer'
+def is_inner_function(filename, outer, inner):
+  with open(filename, "r") as fin:
+    tree = ast.parse(fin.read())
+  for node in ast.walk(tree):
+    if isinstance(node, ast.FunctionDef) and node.name == outer:
+      body = node.body
+      for s in body:
+        for n in ast.walk(s):
+          if isinstance(n, ast.FunctionDef) and n.name == inner:
+            return True
+  return False
