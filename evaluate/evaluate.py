@@ -204,3 +204,49 @@ def is_inner_function(filename, outer, inner):
           if isinstance(n, ast.FunctionDef) and n.name == inner:
             return True
   return False
+
+# finds out the number of class definitions in the file name.
+def num_of_classdefs(filename):
+  with open(filename, "r") as fin:
+    tree = ast.parse(fin.read())
+  n = 0
+  for node in ast.walk(tree):
+    if isinstance(node, ast.ClassDef):
+      n += 1
+  return n
+
+# finds out if there is a class definition of the given name in the file name.
+def is_classdef(classname, filename):
+  with open(filename, "r") as fin:
+    tree = ast.parse(fin.read())
+  for node in ast.walk(tree):
+    if(isinstance(node, ast.ClassDef) and node.name == classname):
+      return True
+  return False
+
+# finds out if there is a method named 'functionname' in a class named 
+# 'classname' in file named 'filename'.
+def is_fundef(functionname, classname, filename):
+  with open(filename, "r") as fin:
+    tree = ast.parse(fin.read())
+  for node in ast.walk(tree):
+    if(isinstance(node, ast.ClassDef) and node.name == classname):
+      for node1 in ast.walk(node):
+        if(isinstance(node1, ast.FunctionDef) and node1.name == functionname):
+          return True
+      return False
+  return False
+
+# finds the number of methods in the class 'classname' in the file named
+# 'filename'.
+def num_of_methods(classname, filename):
+  with open(filename, "r") as fin:
+    tree = ast.parse(fin.read())
+  for node in ast.walk(tree):
+    if(isinstance(node, ast.ClassDef) and node.name == classname):
+      n = 0
+      for node1 in ast.walk(node):
+        if(isinstance(node1, ast.FunctionDef)):
+          n += 1
+      return n
+  raise Exception("Class named '" + classname + "' not found in file '" + filename +".") 
