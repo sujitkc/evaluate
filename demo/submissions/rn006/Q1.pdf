@@ -1,0 +1,4 @@
+1a.) No
+1b.) Yes.Side effect arises when we use '=' operator and also while printing 'Enter the Number: '.
+1c.) Yes.Side effect arises while printing 'Hello world!'.
+1d.) Yes.Side effect arises in "sum +'=' i" and while printing 'sum'.

@@ -1,0 +1,7 @@
+a)No side effect
+
+b)Yes. Assignment of input is a side effect
+
+c)Yes. Print statement causes side effect at output buffer.
+
+d)Yes at sum+=i. Here the side effect is updation of variable.

@@ -1,0 +1,4 @@
+1) No Side effect
+2) Side effect while type casting to int
+3) Side effect in print("Hello world!")
+4) Side effect in for loop, s+=i and print(sum)
