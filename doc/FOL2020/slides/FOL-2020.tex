@@ -1,0 +1,558 @@
+\documentclass{beamer}
+\usetheme{Antibes}
+\usepackage{xcolor, colortbl}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{textcomp}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{alltt}
+\usepackage{tikz}
+\usepackage{framed}
+\usepackage{marvosym}
+\usepackage{wasysym}
+\usepackage{marvosym}
+\usepackage{crayola}
+\usepackage{mathpartir}
+\usepackage{tabularx}
+\usepackage[belowskip=-15pt,aboveskip=0pt]{caption}
+\usepackage[skins]{tcolorbox}
+\usepackage{multicol}
+\usetikzlibrary{positioning,shapes,arrows, backgrounds, fit, shadows}
+\usetikzlibrary{decorations.markings}
+%\usepackage{wasysym}
+%\usepackage{marvosym}
+\setbeamertemplate{footline}[frame number]
+%\usecolortheme{fly}
+\usefonttheme{serif}
+
+\title[Sujit]{Automated Evaluation of Programming Assignments -- from Practice to Research}
+\author{Sujit Kumar Chakrabarti}
+\institute{IIITB}
+\date{January, 2020}
+
+\AtBeginSection[]
+{
+  \begin{frame}<beamer>
+    \frametitle{Outline for section \thesection}
+    \tableofcontents[currentsection]
+  \end{frame}
+}
+
+\begin{document}
+\setbeamertemplate{navigation symbols}{}%remove navigation symbols
+
+\maketitle
+
+\definecolor{lightblue}{rgb}{0.8,0.93,1.0} % color values Red, Green, Blue
+\definecolor{darkblue}{rgb}{0.4,0.3,1.0} % color values Red, Green, Blue
+\definecolor{Blue}{rgb}{0,0,1.0} % color values Red, Green, Blue
+\definecolor{darkgreen}{rgb}{0,0.7,0.2} % color values Red, Green, Blue
+\definecolor{Red}{rgb}{1,0,0} % color values Red, Green, Blue
+\definecolor{Pink}{rgb}{0.7,0,0.2}
+\definecolor{links}{HTML}{2A1B81}
+\definecolor{mydarkgreen}{HTML}{126215}
+\newcommand{\highlight}[1]{{\color{Red}(#1)}}
+
+\newcommand{\myheader}[1]{
+	{\color{darkblue}
+		\begin{Large}
+			\begin{center}
+				{#1}
+			\end{center}
+		\end{Large}
+	}
+}
+\newcommand{\myminorheader}[1]{
+	{\color{BrickRed}
+		\begin{Large}
+			{\fontfamily{\sfdefault}\selectfont\textbf{#1}}
+		\end{Large}
+	}
+}
+
+%\tikzstyle{input} = [coordinate]
+%\tikzstyle{output} = [coordinate]
+
+
+\tikzstyle{bb}=[%
+      rectangle, draw=black, thick, fill=OliveGreen!30, drop shadow, align=center,
+      text ragged, minimum height=2em, minimum width=2em, inner sep=6pt
+]
+
+\tikzstyle{inv}=[%
+      rectangle, draw=none,  align=center,
+      text ragged, minimum height=2em, minimum width=2em, inner sep=6pt
+]
+
+\tikzstyle{db}=[%
+      ellipse, draw=black, thick, fill=pink, drop shadow, align=center,
+      text ragged, minimum height=2em, inner sep=6pt
+]
+
+\tikzstyle{jn}=[%
+      ellipse, draw=black, thick, fill=black
+]
+
+\tikzstyle{io}=[%
+      trapezium, trapezium left angle=60, trapezium right angle=120, draw=black, thick, fill=brown, drop shadow,
+      text ragged, minimum height=2em, minimum width=2em, inner sep=6pt, align=center
+]
+
+\tikzstyle{glio}=[%
+      trapezium, trapezium left angle=60, trapezium right angle=120, draw=red, line width = 1mm, fill=brown, drop shadow,
+      text ragged, minimum height=2em, minimum width=2em, inner sep=6pt
+]
+\tikzstyle{gl}=[%
+      rectangle, draw=red, line width = 1mm, fill=lightblue, drop shadow,
+      text ragged, minimum height=2em, minimum width=2em, inner sep=6pt
+]
+
+\tikzstyle{en}=[%
+      rectangle, draw=black, thick, fill=none,
+      text ragged, minimum height=2em, minimum width=2em, inner sep=6pt
+]
+
+\tikzstyle{sh}=[%
+      rectangle, draw=gray, thick, fill=none, color = gray,
+      text ragged, minimum height=2em, minimum width=2em, inner sep=6pt
+]
+
+
+\lstset{
+%	language = Python,
+	basicstyle = \ttfamily\scriptsize,
+	stringstyle = \ttfamily,
+	keywordstyle=\color{Blue}\bfseries,
+	identifierstyle=\color{Pink},
+	commentstyle=\color{darkgreen},
+	frameround=tttt,
+%	numbers=left
+	showstringspaces=false
+}
+
+\lstdefinestyle{mycode}{
+	language = Caml,
+	basicstyle = \tiny\ttfamily,
+	stringstyle = \color{red}\ttfamily,
+	keywordstyle=\color{black}\bfseries,
+	identifierstyle=\ttfamily,
+	frameround=tttt,
+	numbers=none,
+	showstringspaces=false,
+	escapeinside={(*@}{@*)}
+}
+
+\newtcolorbox{myframe}[2][]{%
+  enhanced,colback=white,colframe=black,coltitle=black,
+  sharp corners,boxrule=0.4pt,
+  fonttitle=\itshape,
+  attach boxed title to top left={yshift=-0.3\baselineskip-0.4pt,xshift=2mm},
+  boxed title style={tile,size=minimal,left=0.5mm,right=0.5mm,
+    colback=white,before upper=\strut},
+  title=#2,#1
+}
+
+\section{An Automated Evaluation System}
+
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Credits}
+
+\begin{itemize}
+\item Nikhila -- PhD student
+\item Ananta -- MS/R student
+\item Kapil Kalra -- summer intern, 2018
+\item Manish Gupta -- Professor (IIIT-B), Google AI Research Lab
+\item Many students, TAs, project/thesis students, interns
+\end{itemize}
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Why Automated Evaluation?}
+
+\begin{itemize}
+\item Online learning platforms: Coursera, Udacity, EdX ...
+\item Online programming contests: ACM ICPC, HakerEarth, HackerRank, CodeChef ...
+\item Introductory programming courses
+\item Error prone, labour intensive, repetitive \pause -- \emph{\color{Red}Boring!}
+\end{itemize}
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Our Contribution}
+{Automated Evaluation System}
+
+\begin{itemize}
+\item Automatically evaluates programming assignments using testing
+\item Several human weeks $\longrightarrow$ a few seconds
+\item Has enabled more frequent, deeper formative assessments with shorter feedback cycles
+\end{itemize}
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Testing}
+{A Test Setup}
+
+\begin{center}
+
+\begin{tikzpicture}
+\node[inv](i) {$I_i$};
+\node[bb, right = of i](th) {Test \\ Harness};
+\node[inv, above = of th](put) {Program \\ under \\ Test};
+\node[circle, draw=black, right = of th](cmp) {};
+\draw[-] (cmp.south west) to (cmp.north east);
+\draw[-] (cmp.south east) to (cmp.north west);
+\node[inv, above = of cmp](e) {$E_i$};
+\node[inv, right = of cmp](res) {$R_i$ (Pass/Fail)};
+
+\draw[-latex] (i) to (th);
+\draw[-latex] (put) to (th);
+\draw[-latex] (th) to node[above]{$O_i$}(cmp);
+\draw[-latex] (e) to (cmp);
+\draw[-latex] (cmp) to (res);
+
+\end{tikzpicture}
+\begin{multicols}{2}
+\begin{tabular}{| c | c |}
+\hline
+$I_i$ & Test input \\
+\hline
+$E_i$ & Expected output \\
+\hline
+$O_i$ & Actual output \\
+\hline
+$R_i$ & Test result \\
+\hline
+\end{tabular}
+
+\myminorheader{Assigning Marks:}
+\begin{equation*}
+M = \sum k_i R_i
+\end{equation*}
+\end{multicols}
+\end{center}
+
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Test Case}
+{Example}
+
+\begin{lstlisting}[frame=single]
+def eval_triangle_area():
+
+  import mycode.pentagon
+  import code.pentagon
+
+  t1 = mycode.pentagon.Triangle(5, 10)
+  t2 = code.pentagon.Triangle(5, 10)
+
+  eo = t1.area()
+  ao = t2.area()
+  
+  if(equals(ao, eo)):
+    return (1, "eval_triangle_area")
+  else:
+    return (0, "eval_triangle_area: wrong answer")
+\end{lstlisting}
+
+\begin{center}
+Test case to check if a triangle's area is computed properly
+\end{center}
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{System Architecture}
+
+
+\begin{center}
+\begin{tabular}{c @{} c}
+\begin{minipage}{0.6\textwidth}
+
+\resizebox{!}{0.7\textheight}{
+\begin{tikzpicture}
+\node[bb](ev){Evaluator};
+
+\node[bb, fill=Red!20, above left= 0.2cm of ev, yshift=1cm](ts1){Test \\ suite 1};
+\draw[->, thick, BrickRed](ev) |- node[left, near start] {\rotatebox{90}{$\rightarrow W_1$}} node[above, near end] {$\rightarrow\eta_1$}(ts1);
+\node[bb, fill=Red!20, below left= 0.2cm of ev, yshift=-1cm](tsn){Test \\ suite $n$};
+\draw[->, thick, BrickRed](ev) |- node[above left] {\rotatebox{90}{$W_n\ \leftarrow $}} node[below, near end]{$\rightarrow\eta_n$}(tsn);
+
+\pause
+\node[bb, fill=Blue!20, above left= 0.2cm of ts1, xshift=-1cm](tc11){Test \\ case 1.1};
+\draw[->, thick, BrickRed](ts1) |- node[below, near end] {$ w_{1.1} \leftarrow$} node[above, near end] {$\rightarrow M_{1.1}$}(tc11);
+
+\node[inv, left= 1.5cm of ts1](dots2){\rotatebox{90}{...}};
+
+\node[bb, fill=Blue!20, below left= 0.2cm of ts1, xshift=-1cm](tc1n){Test \\ case $1.m_1$};
+\draw[->, thick, BrickRed](ts1) |- node[below, near end] {$w_{1.m_1} \leftarrow$} node[above, near end] {$\rightarrow M_{1.m_1}$} (tc1n);
+
+\node[bb, fill=Blue!20, above left= 0.2cm of tsn, xshift=-1cm](tcm1){Test \\ case $n.1$};
+\draw[->, thick, BrickRed](tsn) |- node[below, near end] {$ w_{n.1} \leftarrow$} node[above, near end] {$\rightarrow M_{n.1}$} (tcm1);
+
+\node[inv, left= 1.5cm of tsn](dots3){\rotatebox{90}{...}};
+
+\node[bb, fill=Blue!20, below left= 0.2cm of tsn, xshift=-1cm](tcmn){Test \\ case $n.m_n$};
+\draw[->, thick, BrickRed](tsn) |- node[below, near end] {$w_{n.m_n} \leftarrow$} node[above, near end] {$\rightarrow M_{n.m_n}$} (tcmn);
+
+\node[inv, left= 0.2cm of ev](dots4){\rotatebox{90}{...}};
+
+
+\end{tikzpicture}
+}
+\end{minipage}
+&
+\begin{minipage}{0.5\textwidth}
+$\eta = \frac{\Sigma wM}{\Sigma w}$ \\
+
+$total = \Sigma \eta W$
+\end{minipage}
+
+\end{tabular}
+
+\end{center}
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{AEPA System}
+{Achievements}
+
+\begin{enumerate}
+\item Simple setup -- no server (except LMS)
+\item Simple use -- on local machine
+\item Flexibility
+\item Language independent
+\item All data is readily available
+\item Knowledge creation
+\item Software offering
+\end{enumerate}
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Approaches to Automated Evaluation}
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Approaches to Automated Evaluation}
+
+\begin{itemize}
+\item Testing
+\item Testing + Static Analysis
+\item Static Analysis
+\item Testing + Static Analysis + Machine Learning 
+\end{itemize}
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+%\subsection{Testing}
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Testing}
+
+\myminorheader{Advantages:}
+\begin{enumerate}
+\item Conceptually simple
+\item Easy to automate
+\end{enumerate}
+\pause
+
+\vspace{0.5cm}
+\myminorheader{Issues:}
+\begin{enumerate}
+\item Fragility
+\item Designing the comparator
+\item Testing structural properties
+\end{enumerate}
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Testing}
+{Issues -- Fragility}
+
+\begin{enumerate}
+\item Parsing complex outputs -- tolerating minor variability
+\item Overhead on students to understand the format and code to print output in a the specified format
+\item Crashes and exceptions
+\item Infinite loops
+\end{enumerate}
+
+\myminorheader{Solutions:}
+\begin{enumerate}
+\item Running $P$ in a different thread.
+\item Wrapping $P$ in input/output script and then executing
+\end{enumerate}
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Testing}
+{Issues -- Testing Structural Properties}
+
+\myminorheader{Examples:}
+\begin{itemize}
+\item Has the factorial function been implemented using recursion or loop?
+\item Quicksort or mergesort?
+\item ...
+\end{itemize}
+
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+%\subsection{Testing + Static Analysis}
+
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Testing + Static Analysis}
+\myminorheader{Basic Idea:}
+
+To use reflection to navigate through the abstract syntax tree of the program?
+
+\myminorheader{Example:}
+
+\begin{lstlisting}[frame=single]
+@evaluate
+def eval_square_baseclass():
+  import code.pentagon
+  s = code.pentagon.Square(10)
+  base_names = [c.__name__ for c in s.__class__.__bases__]
+  if(base_names == ["RegularPolygon"]):
+    return (1, "eval_square_baseclass")
+  else:
+    return (0, "eval_square_baseclass: wrong answer")
+\end{lstlisting}
+
+
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Testing + Static Analysis}
+{Issues}
+
+\begin{itemize}
+\item The static properties that can be tested is dependent on the depth of reflection offered by the programming language. For example, in C++, how to check if class $B$ is subclass of class $A$?
+\item Some properties are not easy to test; require more full-fledged static analysis. For example, how to test if a variable used has been defined earlier or not?
+\end{itemize}
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\section{Static Analysis}
+
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Static Analysis}
+{Basic Approach}
+
+\begin{center}
+\begin{tikzpicture}
+\node[inv] (inp) {Input \\ Program};
+\node[bb, right = of inp] (fe){\textsc{Front} \\ \textsc{End}};
+\node[bb, right = of fe] (ver) {\textsc{Verifier}};
+\node[bb, above = of ver] (xr) {\textsc{Translator}};
+\node[inv, left = of xr] (q) {Question};
+\node[inv, right = of ver] (res) {Pass/Fail};
+
+\draw[->, thick, draw=Maroon] (inp) to (fe); 
+\draw[->, thick, draw=Maroon] (fe) to node[above]{IR}(ver); 
+\draw[->, thick, draw=Maroon] (xr) to (ver); 
+\draw[->, thick, draw=Maroon] (ver) to (res); 
+\draw[->, thick, draw=Maroon] (q) to (xr); 
+
+\end{tikzpicture}
+
+\end{center}
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Static Analysis}
+{Issues -- Partially correct submissions}
+
+\myminorheader{Example}
+
+\begin{framed}
+\textbf{\color{Blue}Q.} Write a program that finds the transverse of a matrix (represented as a list of lists).
+\end{framed}
+
+\begin{lstlisting}[frame=single]
+m = [  [1, 2, 3],  [4, 5, 6] ]
+n = []
+for i in range(len(m[0])):
+  row = []
+  for j in range(len(m)):
+    row.append(m[j][i])
+  n.append(row)
+print n
+\end{lstlisting}
+
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Static Analysis + Machine Learning}
+
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Static Analysis + Machine Learning}
+{Basic Approach}
+
+\resizebox{\textwidth}{!} {
+\begin{tikzpicture}
+    \node[inv] (1)  {Reference \\ Solution};
+    \node[bb]  (2) [right = of 1]   {Gold \\ Standards \\ Identification};
+    \node[bb]  (3) [right = of 2]   {Approach \\ Detection};
+    \node[bb] (4) [right = of 3] {Comparison, \\ Repair, \\ Mark \\ Allocation};
+    \node[inv] (5) [above = of 4] {Submitted \\ Solution};
+    \node[inv] (6) [right = of 4] {Marks};
+    \node[bb] (simdet) [above = of 3] {Similarity \\ Detection};
+
+    \node[inv,outer sep=0] (2a) [below = of 2] {Automated \\ Testing};
+    \node[inv,outer sep=0] (3a) [below = of 3]   {Unsupervised \\ Learning};
+    \node[inv,outer sep=0] (4a) [below = of 4] {Supervised \\ Learning};
+
+	\draw[->, thick, draw=Maroon] (1) -- (2);
+	\draw[->, thick, draw=Maroon] (2) -- (3);
+	\draw[->, thick, draw=Maroon] (3) -- (4);
+	\draw[->, thick, draw=Maroon] (4) -- (6);
+	\draw[->, thick, draw=Maroon] (5) -- (4);
+
+	\draw[->, thick, dashed] (simdet) -- (3);
+	\draw[->, thick, dashed] (simdet.310) |- (4.150);
+
+	\draw[->, thick, draw=Maroon] (2a) -- (2);
+	\draw[->, thick, draw=Maroon] (3a) -- (3);
+	\draw[->, thick, draw=Maroon] (4a) -- (4);
+
+  \end{tikzpicture}
+}
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Wrap Up}
+
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Conclusions}
+{Summary}
+
+\begin{itemize}
+\item A home-grown automated evaluation system
+\item Approaches and challenges in automated evaluation
+\item Static analysis
+\item Static analysis + machine learning
+\end{itemize}
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% frame begin %%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}[fragile]{Thank you!}
+\myheader{Thank you!}
+\end{frame}
+% frame end %%%%%%%%%%%%%%%%%%%%%%%%
+
+\end{document}
