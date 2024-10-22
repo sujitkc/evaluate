@@ -28,7 +28,7 @@ def eval_2():
   ref = lambda: mattrans.mattrans(m)
   return eval_matfun(fname, sub, ref)
 
-eval_tests = testsuite(
+eval_tests = E.testsuite(
   tests = [
     (eval_1, 1),
     (eval_2, 1),

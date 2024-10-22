@@ -179,7 +179,7 @@ def eval_12():
 
 
 
-eval_tests = testsuite(
+eval_tests = E.testsuite(
   tests = [
     (eval_1, 1),
     (eval_2, 1),

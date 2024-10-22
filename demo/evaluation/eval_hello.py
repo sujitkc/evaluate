@@ -16,7 +16,7 @@ def eval_1():
   ref = lambda: hello.hello("SKC")
   return eval_matfun(fname, sub, ref)
 
-eval_tests = testsuite(
+eval_tests = E.testsuite(
   tests = [
     (eval_1, 1),
   ])

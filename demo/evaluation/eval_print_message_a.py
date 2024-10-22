@@ -9,7 +9,7 @@ def eval_1():
   fname = __name__ + "." + sys._getframe().f_code.co_name
   return eval_named_proc_1(fname, driver = "print_message_a_driver.py")
 
-eval_tests = testsuite(
+eval_tests = E.testsuite(
   tests = [
     (eval_1, 1),
   ])

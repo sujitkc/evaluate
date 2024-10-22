@@ -55,7 +55,7 @@ def eval_4():
   else:
     return (0, fname + ": wrong answer")
 
-eval_tests = testsuite(
+eval_tests = E.testsuite(
   tests = [
     (eval_1, 1),
     (eval_2, 1),
