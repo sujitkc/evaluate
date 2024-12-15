@@ -4,6 +4,7 @@ import sys
 import ast
 import threading
 import time
+import io
 
 mypython = "python3"
 
@@ -50,6 +51,7 @@ def safe(f):
         FileNotFoundError,
         RecursionError,
         ValueError) as e:
+      print("Exception raised: " + str(e))
       return (0, f.__name__ + ": " + str(e))
   return g
 
@@ -61,6 +63,7 @@ class MyThread(threading.Thread):
 
   def run(self):
     self.result = self.f()
+
 def evaluate(f):
   safef = safe(f)
   
@@ -124,7 +127,51 @@ def eval_matfun(fname, sub, ref):
   else:
     return (0, fname + ": wrong answer")
 
-# compares the string printed on the standard output with a separate driver.
+# compares the value returned by the mathematical function that takes input
+# from stdin
+def eval_matfun_stdin(fname, inp, sub, ref):
+  sys.stdin = io.StringIO(inp)
+  o = sub()
+  sys.stdin = sys.__stdin__
+
+  sys.stdin = io.StringIO(inp)
+  e = ref()
+  sys.stdin = sys.__stdin__
+
+  if(equals(o, e)):
+    return (1, fname)
+  else:
+    return (0, fname + ": wrong answer")
+
+# compares the string printed on the standard output by the evaluated program
+# Tested entity:     program under test (Python file)
+# Calling mechanism: direct
+# Input source:      standard input
+# Output on:         standard output
+def eval_program_stdin_stdout(fname, inp, filename):
+  command = [mypython, "code/" + filename + ".py"]
+  subprocess_obj = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+  subprocess_obj.stdin.write(inp)
+  o, error = subprocess_obj.communicate()
+  subprocess_obj.stdin.close()
+  command = [mypython, "mycode/" + filename + ".py"]
+  subprocess_obj = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+  subprocess_obj.stdin.write(inp)
+  e, error = subprocess_obj.communicate()
+  subprocess_obj.stdin.close()
+ 
+  if(equals(o, e)):
+    return (1, fname)
+  else:
+    return (0, fname + ": wrong answer")
+
+
+# compares the string printed on the standard output by the evaluated program
+# with a separate driver.
+# Tested entity:     program under test (Python file)
+# Calling mechanism: through driver
+# Input source:      None
+# Output on:         standard output
 def eval_named_proc_1(fname, driver):
   subprocess.call(["cp", "drivers/" + driver, "code/"])
   o = subprocess.check_output([mypython, "code/" + driver])
@@ -169,9 +216,11 @@ def f_calls_g(filename, caller, callee):
       body = node.body
       for s in body:
         for n in ast.walk(s):
-          if isinstance(n, ast.Call) and isinstance(n.func, ast.Name) \
-            and n.func.id == callee:
-            return True
+          if(isinstance(n, ast.Call)):
+            if isinstance(n.func, ast.Name) and n.func.id == callee:
+              return True
+            elif isinstance(n.func, ast.Attribute) and n.func.attr == callee:
+              return True
   return False
 
 def eval_f_calls_g(fname, filename, caller, callee):
@@ -191,19 +240,66 @@ def eval_is_recursive(fname, filename, f):
   else:
     return(0, fname + ": " + f + " is not recursive.")
 
-# finds out if a function named 'inner' is an inner function in another
-# function named 'outer'
-def is_inner_function(filename, outer, inner):
+# find out if a function named f uses list comprehension anywhere inside.
+def has_list_comprehension(filename, f):
   with open(filename, "r") as fin:
     tree = ast.parse(fin.read())
+  for node in ast.walk(tree):
+    if isinstance(node, ast.ListComp):
+      return True
+  return False
+
+def eval_has_list_comprehension(fname, filename, f):
+  if(has_list_comprehension(filename, f)):
+    return (1, fname)
+  else:
+    return(0, fname + ": " + f + " has no list comprehension.")
+
+def get_all_inner_functions(filename, outer):
+  with open(filename, "r") as fin:
+    tree = ast.parse(fin.read())
+  inner_functions = []
   for node in ast.walk(tree):
     if isinstance(node, ast.FunctionDef) and node.name == outer:
       body = node.body
       for s in body:
         for n in ast.walk(s):
-          if isinstance(n, ast.FunctionDef) and n.name == inner:
-            return True
+          if isinstance(n, ast.FunctionDef):
+            inner_functions.append(n.name)
+  return inner_functions
+
+# finds out if a function named 'inner' is an inner function in another
+# function named 'outer'
+def is_inner_function(filename, outer, inner):
+  return inner in get_all_inner_functions(filename, outer)
+
+def returns_name(filename, f, name):
+  with open(filename, "r") as fin:
+    tree = ast.parse(fin.read())
+  for node in ast.walk(tree):
+    if isinstance(node, ast.FunctionDef) and node.name == f:
+      body = node.body
+      for s in body:
+        for n in ast.walk(s):
+          if isinstance(n, ast.Return):
+            if isinstance(n.value, ast.Name) and n.value.id == name:
+                return True
+
   return False
+
+def eval_is_inner_function(fname, filename, outer, inner):
+  if(is_inner_function(filename, outer, inner)):
+    return (1, fname)
+  else:
+    return(0, fname + ": " + f + " has no list comprehension.")
+
+def get_arguments(filename, f):
+  with open(filename, "r") as fin:
+    tree = ast.parse(fin.read())
+  for node in ast.walk(tree):
+    if isinstance(node, ast.FunctionDef) and node.name == f:
+      args = node.args.args
+      return [arg.arg for arg in args]
 
 # finds out the number of class definitions in the file name.
 def num_of_classdefs(filename):
@@ -224,9 +320,15 @@ def is_classdef(classname, filename):
       return True
   return False
 
+def eval_is_classdef(fname, filename, classname):
+  if(is_classdef(classname, filename)):
+    return (1, fname)
+  else:
+    return(0, fname + ": " + f + " has no class definition '" + classname + "'.")
+
 # finds out if there is a method named 'functionname' in a class named 
 # 'classname' in file named 'filename'.
-def is_fundef(functionname, classname, filename):
+def is_method(functionname, classname, filename):
   with open(filename, "r") as fin:
     tree = ast.parse(fin.read())
   for node in ast.walk(tree):
@@ -236,6 +338,12 @@ def is_fundef(functionname, classname, filename):
           return True
       return False
   return False
+
+def eval_is_method(fname, filename, classname, methodname):
+  if(is_method(methodname, classname, filename)):
+    return (1, fname)
+  else:
+    return(0, fname + ": '" + classname  + "' has no method named '" + methodname + "'.")
 
 # finds the number of methods in the class 'classname' in the file named
 # 'filename'.
