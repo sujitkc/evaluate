@@ -72,7 +72,7 @@ def evaluate(f):
     t.daemon = True
     t.start()
     timeout = True
-    for i in range(10):
+    for i in range(20):
       if(t.is_alive()):
         time.sleep(0.1)
       else:
@@ -149,6 +149,7 @@ def eval_matfun_stdin(fname, inp, sub, ref):
 # Input source:      standard input
 # Output on:         standard output
 def eval_program_stdin_stdout(fname, inp, filename):
+  print("here")
   command = [mypython, "code/" + filename + ".py"]
   subprocess_obj = subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
   subprocess_obj.stdin.write(inp)
@@ -159,7 +160,6 @@ def eval_program_stdin_stdout(fname, inp, filename):
   subprocess_obj.stdin.write(inp)
   e, error = subprocess_obj.communicate()
   subprocess_obj.stdin.close()
- 
   if(equals(o, e)):
     return (1, fname)
   else:
